@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Secure Chat</title>
+  <style>
+    body { background: black; color: white; font-family: sans-serif; }
+    #chat { height: 80vh; overflow-y: auto; border: 1px solid #444; padding: 10px; }
+    #input-container { display: flex; margin-top: 10px; }
+    #message { flex: 1; padding: 5px; }
+    #send { padding: 5px 10px; }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+  <div id="input-container">
+    <input id="message" placeholder="Type a message...">
+    <button id="send">Send</button>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDi6kx4nSM0leIsQ0m9UxqBlE699nozUBs",
+      authDomain: "link-37ce7.firebaseapp.com",
+      databaseURL: "https://link-37ce7-default-rtdb.firebaseio.com",
+      projectId: "link-37ce7",
+      storageBucket: "link-37ce7.firebasestorage.app",
+      messagingSenderId: "864342278827",
+      appId: "1:864342278827:web:81059b56b947df8ad2adee",
+      measurementId: "G-6B40R1LXJ1"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Room and nickname setup
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get("room") || "default";
+    let nickname = localStorage.getItem("nickname");
+    if (!nickname) {
+      nickname = prompt("Enter your nickname:");
+      localStorage.setItem("nickname", nickname);
+    }
+
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("message");
+    const send = document.getElementById("send");
+
+    // Send message
+    send.onclick = () => {
+      const text = input.value.trim();
+      if (text) {
+        db.ref("rooms/" + room).push({ sender: nickname, text });
+        input.value = "";
+      }
+    };
+
+    // Receive messages
+    db.ref("rooms/" + room).on("child_added", snapshot => {
+      const { sender, text } = snapshot.val();
+      const div = document.createElement("div");
+      div.innerText = sender + ": " + text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    });
+  </script>
+</body>
+</html>
